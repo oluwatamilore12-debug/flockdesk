@@ -4,7 +4,7 @@
 
 | Service | URL |
 |---------|-----|
-| **App (Vercel)** | https://flockdesk.vercel.app *(or your custom domain)* |
+| **App (Vercel)** | https://flockdesk.vercel.app |
 | **Supabase Dashboard** | https://supabase.com/dashboard/project/mdobobyskmpbwnemxzrs |
 | **GitHub** | https://github.com/oluwatamilore12-debug/flockdesk |
 
