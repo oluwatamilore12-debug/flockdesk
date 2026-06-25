@@ -32,7 +32,7 @@ export function Drawer({ open, onClose, title, subtitle, children, width = 'lg',
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className={cn('relative flex h-full max-h-[100dvh] w-full flex-col bg-white shadow-2xl', widths[width])}
+            className={cn('relative flex h-full max-h-[100dvh] w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-none', widths[width])}
             role="dialog"
             aria-modal="true"
           >

@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router'
 import { BrandLogo } from '@/components/shared/BrandLogo'
+import { InstallAppPrompt } from '@/components/shared/InstallAppPrompt'
+import { APP_VERSION } from '@/lib/version'
 import { useAuthStore } from '@/stores/authStore'
 import { Button, Input } from '@/components/ui'
 import toast from 'react-hot-toast'
@@ -24,7 +27,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-[100dvh] flex-col lg:flex-row">
       <motion.div
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
@@ -61,9 +64,9 @@ export function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="flex flex-1 items-center justify-center bg-white p-6"
+        className="flex flex-1 items-center justify-center bg-white px-4 py-6 pb-safe sm:p-6"
       >
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md space-y-6">
           <div className="mb-8 lg:hidden">
             <div className="mb-4 flex items-center gap-2">
               <BrandLogo size={32} />
@@ -110,11 +113,19 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 rounded-xl bg-[#F0F2FA] p-4 text-xs text-[#001996]">
+          <div className="rounded-xl bg-[#F0F2FA] p-4 text-xs text-[#001996]">
             <p className="font-semibold text-[#000000]">Client logins:</p>
             <p className="mt-1">sales@jmages.ng · accounts@jmages.ng · md@jmages.ng · admin@jmages.ng</p>
             <p>Contact your administrator for credentials.</p>
           </div>
+
+          <InstallAppPrompt />
+
+          <p className="text-center text-xs text-[#10259C]">
+            <Link to="/app" className="font-semibold text-[#001996] hover:underline">
+              FlockDesk v{APP_VERSION} — versions &amp; install
+            </Link>
+          </p>
         </div>
       </motion.div>
     </div>

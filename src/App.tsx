@@ -9,6 +9,7 @@ import { AccountsLayout } from '@/components/layout/AccountsLayout'
 import { ExecutiveLayout } from '@/components/layout/ExecutiveLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { LoginPage } from '@/pages/Login'
+import { AppDownloadPage } from '@/pages/AppDownload'
 import { SalesDashboard } from '@/pages/sales/SalesDashboard'
 import { AccountsDashboard } from '@/pages/accounts/AccountsDashboard'
 import { MDDashboard } from '@/pages/md/MDDashboard'
@@ -32,8 +33,14 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+      <Toaster
+        position="top-center"
+        containerClassName="toast-mobile"
+        toastOptions={{ duration: 4000 }}
+      />
       <Routes>
+        <Route path="/app" element={<AppDownloadPage />} />
+        <Route path="/download" element={<AppDownloadPage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* Sales — isolated department */}

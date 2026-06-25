@@ -469,12 +469,12 @@ export function SalesDashboard() {
       ) : (
         <>
           {salesDay && (
-            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
-              <Bird className="h-5 w-5 text-primary-600" />
-              <div className="flex-1">
-                <span className="font-medium">Sales Day Open</span>
-                <span className="mx-2 text-slate-300">·</span>
-                <span className="text-sm text-slate-500">{formatDate(salesDay.date)}</span>
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#D6DBEF] bg-white px-3 py-3 sm:gap-3 sm:px-4">
+              <Bird className="h-5 w-5 shrink-0 text-[#001996]" />
+              <div className="min-w-0 flex-1">
+                <span className="font-medium text-[#000000]">Sales Day Open</span>
+                <span className="mx-2 text-[#D6DBEF]">·</span>
+                <span className="text-sm text-[#10259C]">{formatDate(salesDay.date)}</span>
               </div>
               <Badge variant={salesDay.status === 'open' ? 'info' : 'warning'}>
                 {salesDay.status}

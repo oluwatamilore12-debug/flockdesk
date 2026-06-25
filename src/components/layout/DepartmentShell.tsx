@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
-import { LogOut, Bell, Menu, X } from 'lucide-react'
+import { LogOut, Bell, Menu, X, Download } from 'lucide-react'
 import { BrandLogo } from '@/components/shared/BrandLogo'
 import { GlobalSearch } from '@/components/shared/GlobalSearch'
+import { MobileSearch } from '@/components/shared/MobileSearch'
+import { APP_VERSION } from '@/lib/version'
 import { useAuthStore } from '@/stores/authStore'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { DepartmentProvider } from '@/context/DepartmentContext'
@@ -47,7 +49,7 @@ function ShellInner({ department, navItems, children }: DepartmentShellProps) {
   }, [profile?.id, fetchNotifications])
 
   return (
-    <div className="flex min-h-screen bg-[#F0F2FA] pb-16 md:pb-0">
+    <div className="flex min-h-[100dvh] bg-[#F0F2FA] pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <aside
@@ -97,6 +99,13 @@ function ShellInner({ department, navItems, children }: DepartmentShellProps) {
         </nav>
 
         <div className="border-t border-white/10 p-4">
+          <Link
+            to="/app"
+            className="mb-3 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs text-[#F0F2FA] hover:bg-white/15"
+          >
+            <Download className="h-3.5 w-3.5" />
+            FlockDesk v{APP_VERSION} · Install
+          </Link>
           <div className="mb-3 rounded-xl bg-white/10 px-3 py-2">
             <p className="text-sm font-semibold text-white">{profile?.full_name}</p>
             <p className="text-xs capitalize text-[#F0F2FA]">{profile?.role?.replace(/_/g, ' ')}</p>
@@ -111,12 +120,13 @@ function ShellInner({ department, navItems, children }: DepartmentShellProps) {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="no-print flex h-14 items-center gap-3 border-b border-[#F0F2FA] bg-white px-4 lg:px-6">
+        <header className="no-print flex h-14 shrink-0 items-center gap-2 border-b border-[#F0F2FA] bg-white px-3 pt-safe sm:gap-3 sm:px-4 lg:px-6">
           <button className="rounded-lg p-2 text-[#000000] hover:bg-[#F0F2FA] lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
             <Menu className="h-6 w-6" />
           </button>
-          <p className="font-display shrink-0 text-sm font-semibold text-[#000000] lg:hidden">{theme.name}</p>
+          <p className="font-display min-w-0 truncate text-sm font-semibold text-[#000000] lg:hidden">{theme.name}</p>
           <GlobalSearch />
+          <MobileSearch />
           <div className="relative ml-auto">
             <button onClick={() => setNotifOpen(!notifOpen)} className="relative rounded-xl p-2 hover:bg-[#F0F2FA]" aria-label="Notifications">
               <Bell className="h-5 w-5 text-[#000000]" />
@@ -146,19 +156,36 @@ function ShellInner({ department, navItems, children }: DepartmentShellProps) {
             )}
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4 lg:p-6">{children}</main>
       </div>
 
-      <nav className="bottom-tab-bar fixed bottom-0 left-0 right-0 z-40 border-t bg-white" aria-label="Mobile navigation">
+      <nav
+        className="bottom-tab-bar fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t border-[#D6DBEF] bg-white pb-safe shadow-[0_-4px_12px_rgba(0,25,150,0.06)]"
+        aria-label="Mobile navigation"
+      >
         {navItems.map((item) => {
           const active = location.pathname.startsWith(item.path)
           return (
-            <Link key={item.path} to={item.path} className="flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium" style={{ color: active ? theme.primary : '#001996' }}>
+            <Link
+              key={item.path}
+              to={item.path}
+              className="flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 px-2 py-2 text-[11px] font-semibold"
+              style={{ color: active ? theme.primary : '#10259C' }}
+            >
+              <span className={cn('h-1 w-8 rounded-full', active ? 'bg-[#FF052E]' : 'bg-transparent')} />
               {item.label}
             </Link>
           )
         })}
+        <Link
+          to="/app"
+          className="flex min-h-[52px] min-w-[4.5rem] flex-col items-center justify-center gap-0.5 px-2 py-2 text-[11px] font-semibold text-[#10259C]"
+        >
+          <Download className="h-4 w-4" />
+          v{APP_VERSION}
+        </Link>
       </nav>
+
     </div>
   )
 }

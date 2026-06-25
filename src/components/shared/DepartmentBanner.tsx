@@ -29,13 +29,15 @@ export function DepartmentBanner({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg"
+      className="relative overflow-hidden rounded-2xl p-4 text-white shadow-lg sm:p-6"
       style={{ background: theme.bannerGradient }}
     >
       <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="font-display text-xl font-bold text-white sm:text-2xl" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
-            JMAGES DBESTLINE — {theme.name.toUpperCase()}
+          <h1 className="font-display text-base font-bold leading-tight text-white sm:text-xl lg:text-2xl" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+            <span className="block sm:inline">JMAGES DBESTLINE</span>
+            <span className="hidden sm:inline"> — </span>
+            <span className="block text-[#F0F2FA] sm:inline sm:text-white">{theme.name.toUpperCase()}</span>
           </h1>
           <p className="text-sm text-[#F0F2FA]">{subtitle || theme.tagline}</p>
         </div>

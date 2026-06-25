@@ -37,12 +37,18 @@
 @layer base {
   * { border-color: var(--color-card-border); }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
   body {
     font-family: var(--font-sans);
     background: linear-gradient(180deg, #F0F2FA 0%, #FFFFFF 100%);
     background-attachment: fixed;
     color: var(--color-body-dark);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   input, select, textarea {
@@ -92,6 +98,14 @@
   .dept-table tbody tr:hover { background: #F0F2FA; }
   .dept-table td { color: #000000; }
   .dept-table th { color: #ffffff; }
+
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .toast-mobile { top: calc(0.75rem + env(safe-area-inset-top, 0px)) !important; }
+
+  @media (min-width: 640px) {
+    .toast-mobile { top: 1rem !important; }
+  }
 }
 
 @keyframes float {
@@ -125,6 +139,13 @@
   .desktop-sidebar { display: none !important; }
   .bottom-tab-bar { display: flex !important; }
   .stats-grid { grid-template-columns: 1fr !important; }
+
+  .dept-table th,
+  .dept-table td {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 0.8125rem;
+  }
 }
 
 @media (min-width: 769px) {

@@ -253,7 +253,7 @@ export function Modal({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto p-0 sm:items-center sm:p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -268,7 +268,7 @@ export function Modal({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className={cn(
-              'relative my-auto flex w-full max-h-[min(90vh,100dvh-2rem)] flex-col rounded-2xl bg-white shadow-2xl',
+              'relative flex w-full max-h-[min(92dvh,100dvh)] flex-col rounded-t-2xl bg-white shadow-2xl sm:my-auto sm:max-h-[min(90vh,100dvh-2rem)] sm:rounded-2xl',
               sizes[size]
             )}
             role="dialog"
