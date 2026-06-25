@@ -1,4 +1,5 @@
 import type { SalesDay, SalesDayStatus, SalesSessionStock } from '@/types'
+import { mapBirdTypeFromDb, mapSupplierFromDb } from './dbMappers'
 
 /** Format a Date as YYYY-MM-DD in local timezone (avoids UTC off-by-one bugs). */
 export function formatLocalDateString(date: Date): string {
@@ -70,8 +71,10 @@ export function buildStockNotes(entry: {
 export function mapStockFromDb(row: Record<string, unknown>): SalesSessionStock {
   const notes = (row.notes as string) || null
   const parsed = parseStockNotes(notes)
-  const birdType = row.bird_type as SalesSessionStock['bird_type']
-  const supplier = row.supplier as SalesSessionStock['supplier']
+  const birdTypeRow = row.bird_type as Record<string, unknown> | undefined
+  const supplierRow = row.supplier as Record<string, unknown> | undefined
+  const birdType = birdTypeRow ? mapBirdTypeFromDb(birdTypeRow) : undefined
+  const supplier = supplierRow ? mapSupplierFromDb(supplierRow) : undefined
 
   return {
     id: row.id as string,

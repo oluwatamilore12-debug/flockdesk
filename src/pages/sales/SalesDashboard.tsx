@@ -23,7 +23,6 @@ import {
 import { validateSalesDayDate, validateStockEntry, validateSupplier } from '@/lib/validation'
 import { getSessionBirdTotals } from '@/lib/reconciliation'
 import { formatCurrency, formatDate, formatNumber, cn, normalizePhone } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
 import { getNextSalesDayDate, isValidSalesDayDateString } from '@/lib/salesDayMapper'
 import { useAuthStore } from '@/stores/authStore'
 import { OrderEntry } from './OrderEntry'
@@ -338,48 +337,29 @@ export function SalesDashboard() {
         payment_terms: newSupplier.payment_terms.trim() || null,
       }
 
-      if (isDemoMode()) {
-        const result = await addSupplier(payload)
-        if (result.error || !result.data) {
-          toast.error(result.error || 'Failed to add supplier')
-          return
-        }
-        setSuppliers((prev) => [...prev, result.data!])
-        if (selectAfterAdd) {
-          setStockForm((p) => ({ ...p, source_type: 'supplier', supplier_id: result.data!.id }))
-        }
-        setShowAddSupplier(false)
-        setNewSupplier({ name: '', contact_person: '', phone: '', payment_terms: '', address: '' })
-        setSupplierErrors({})
-        toast.success('Supplier added — available when declaring supplier stock')
-        return
-      }
-
-      if (!profile?.tenant_id) {
+      if (!profile?.tenant_id && !isDemoMode()) {
         toast.error('Unable to add supplier — profile not loaded')
         return
       }
 
-      const { data, error } = await supabase
-        .from('suppliers')
-        .insert(payload)
-        .select()
-        .single()
-
-      if (error) {
-        toast.error(error.message)
+      const result = await addSupplier(payload)
+      if (result.error || !result.data) {
+        toast.error(result.error || 'Failed to add supplier')
         return
       }
 
-      const created = data as Supplier
-      setSuppliers((prev) => [...prev, created])
+      setSuppliers((prev) => [...prev, result.data!])
       if (selectAfterAdd) {
-        setStockForm((p) => ({ ...p, source_type: 'supplier', supplier_id: created.id }))
+        setStockForm((p) => ({ ...p, source_type: 'supplier', supplier_id: result.data!.id }))
       }
       setShowAddSupplier(false)
       setNewSupplier({ name: '', contact_person: '', phone: '', payment_terms: '', address: '' })
       setSupplierErrors({})
-      toast.success('Supplier added')
+      toast.success(
+        isDemoMode()
+          ? 'Supplier added — available when declaring supplier stock'
+          : 'Supplier added'
+      )
     } finally {
       setSavingSupplier(false)
     }

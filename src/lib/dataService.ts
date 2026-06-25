@@ -1,6 +1,21 @@
 import { supabase, isSupabaseConfigured } from './supabase'
 import { mapSalesDayFromDb, mapStockFromDb, mapStockToDb } from './salesDayMapper'
 import {
+  mapBirdTypeFromDb,
+  mapCustomerFromDb,
+  mapCustomerToDb,
+  mapDispositionFromDb,
+  mapDispositionToDb,
+  mapOrderFromDb,
+  mapOrderLineToDb,
+  mapOrderToDb,
+  mapPaymentFromDb,
+  mapPaymentToDb,
+  mapSupplierFromDb,
+  mapSupplierInvoiceFromDb,
+  mapSupplierToDb,
+} from './dbMappers'
+import {
   mockBirdTypes, mockCustomers, mockSuppliers, mockStock,
   mockOrders, mockOrderLines, mockDispositions, mockSupplierInvoices,
   mockPayments, mockCompanySettings, mockReconciliation, mockClosedSalesDay,
@@ -95,19 +110,19 @@ export function setForceDemoMode(enabled: boolean): void {
 export async function getBirdTypes(): Promise<BirdType[]> {
   if (shouldUseMock()) return mockBirdTypes
   const { data } = await supabase.from('bird_types').select('*').eq('is_active', true).order('sort_order')
-  return data || []
+  return (data || []).map((row) => mapBirdTypeFromDb(row as Record<string, unknown>))
 }
 
 export async function getCustomers(): Promise<Customer[]> {
   if (shouldUseMock()) return demoSession.customers
   const { data } = await supabase.from('customers').select('*').eq('is_active', true).is('deleted_at', null)
-  return data || []
+  return (data || []).map((row) => mapCustomerFromDb(row as Record<string, unknown>))
 }
 
 export async function getSuppliers(): Promise<Supplier[]> {
   if (shouldUseMock()) return demoSession.suppliers
   const { data } = await supabase.from('suppliers').select('*').eq('is_active', true).is('deleted_at', null)
-  return data || []
+  return (data || []).map((row) => mapSupplierFromDb(row as Record<string, unknown>))
 }
 
 export async function getOpenSalesDay(): Promise<SalesDay | null> {
@@ -164,17 +179,51 @@ export async function getOrdersForSalesDay(salesDayId: string): Promise<SalesOrd
     if (salesDayId === mockClosedSalesDay.id) return mockOrders
     return []
   }
-  const { data } = await supabase
-    .from('sales_orders')
-    .select('*, customer:customers(*), lines:sales_order_lines(*, bird_type:bird_types(*))')
-    .eq('sales_day_id', salesDayId)
-  return data || []
+  const [ordersRes, paymentsRes] = await Promise.all([
+    supabase
+      .from('sales_orders')
+      .select('*, customer:customers(*), lines:sales_order_lines(*, bird_type:bird_types(*))')
+      .eq('sales_day_id', salesDayId)
+      .is('deleted_at', null),
+    supabase.from('customer_payments').select('*').is('deleted_at', null),
+  ])
+  const payments = (paymentsRes.data || []).map((row) =>
+    mapPaymentFromDb(row as Record<string, unknown>)
+  )
+  return (ordersRes.data || []).map((row) =>
+    mapOrderFromDb(row as Record<string, unknown>, payments)
+  )
 }
 
 export async function getAllOrders(): Promise<SalesOrder[]> {
   if (shouldUseMock()) return [...mockOrders, ...demoSession.orders]
-  const { data } = await supabase.from('sales_orders').select('*, customer:customers(*)').order('order_date', { ascending: false })
-  return data || []
+  const [ordersRes, paymentsRes, linesRes] = await Promise.all([
+    supabase
+      .from('sales_orders')
+      .select('*, customer:customers(*)')
+      .is('deleted_at', null)
+      .order('order_date', { ascending: false }),
+    supabase.from('customer_payments').select('*').is('deleted_at', null),
+    supabase
+      .from('sales_order_lines')
+      .select('*, bird_type:bird_types(*)')
+      .is('deleted_at', null),
+  ])
+  const payments = (paymentsRes.data || []).map((row) =>
+    mapPaymentFromDb(row as Record<string, unknown>)
+  )
+  const linesByOrder = new Map<string, Record<string, unknown>[]>()
+  for (const line of linesRes.data || []) {
+    const orderId = (line as Record<string, unknown>).sales_order_id as string
+    const list = linesByOrder.get(orderId) || []
+    list.push(line as Record<string, unknown>)
+    linesByOrder.set(orderId, list)
+  }
+  return (ordersRes.data || []).map((row) => {
+    const record = row as Record<string, unknown>
+    record.lines = linesByOrder.get(record.id as string) || []
+    return mapOrderFromDb(record, payments)
+  })
 }
 
 export async function getDispositions(salesDayId: string): Promise<BirdDisposition[]> {
@@ -183,8 +232,12 @@ export async function getDispositions(salesDayId: string): Promise<BirdDispositi
     if (salesDayId === mockClosedSalesDay.id) return mockDispositions
     return []
   }
-  const { data } = await supabase.from('bird_dispositions').select('*, bird_type:bird_types(*)').eq('sales_day_id', salesDayId)
-  return data || []
+  const { data } = await supabase
+    .from('bird_dispositions')
+    .select('*, bird_type:bird_types(*)')
+    .eq('sales_day_id', salesDayId)
+    .is('deleted_at', null)
+  return (data || []).map((row) => mapDispositionFromDb(row as Record<string, unknown>))
 }
 
 export async function getReconciliation(salesDayId: string): Promise<ReconciliationRow[]> {
@@ -206,14 +259,17 @@ export async function getReconciliation(salesDayId: string): Promise<Reconciliat
 
 export async function getSupplierInvoices(): Promise<SupplierInvoice[]> {
   if (shouldUseMock()) return demoSession.supplierInvoices
-  const { data } = await supabase.from('supplier_invoices').select('*, supplier:suppliers(*), bird_type:bird_types(*)')
-  return data || []
+  const { data } = await supabase
+    .from('supplier_invoices')
+    .select('*, supplier:suppliers(*), bird_type:bird_types(*)')
+    .is('deleted_at', null)
+  return (data || []).map((row) => mapSupplierInvoiceFromDb(row as Record<string, unknown>))
 }
 
 export async function getPayments(): Promise<CustomerPayment[]> {
   if (shouldUseMock()) return demoSession.payments
-  const { data } = await supabase.from('customer_payments').select('*')
-  return data || []
+  const { data } = await supabase.from('customer_payments').select('*').is('deleted_at', null)
+  return (data || []).map((row) => mapPaymentFromDb(row as Record<string, unknown>))
 }
 
 export async function getCompanySettings(): Promise<CompanySettings | null> {
@@ -419,6 +475,7 @@ export async function addStockEntry(
     const invoiceNumber = `SUP-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 900) + 100)}`
     const rate = entry.supplier_rate_per_chick ?? 0
     const qty = entry.quantity_declared
+    const lineTotal = qty * rate
     const { error: invoiceError } = await supabase.from('supplier_invoices').insert({
       tenant_id: tenantId,
       supplier_id: entry.supplier_id,
@@ -427,6 +484,9 @@ export async function addStockEntry(
       bird_type_id: entry.bird_type_id,
       quantity: qty,
       unit_cost: rate,
+      subtotal: lineTotal,
+      tax_amount: 0,
+      total_amount: lineTotal,
       payment_status: 'pending',
       notes: entry.discrepancy_note ?? null,
       created_by: entry.created_by || null,
@@ -525,18 +585,23 @@ export async function createOrder(
     return {}
   }
 
-  const { data, error } = await supabase.from('sales_orders').insert(order).select().single()
+  const tenantId = order.tenant_id || DEMO_TENANT_ID
+  const orderRow = mapOrderToDb({ ...order, tenant_id: tenantId })
+  const { data, error } = await supabase.from('sales_orders').insert(orderRow).select().single()
   if (error) return { error: error.message }
   if (data) {
-    const { error: linesError } = await supabase
-      .from('sales_order_lines')
-      .insert(lines.map((l) => ({ ...l, order_id: data.id })))
+    const lineRows = lines.map((l) =>
+      mapOrderLineToDb(l, data.id as string, tenantId)
+    )
+    const { error: linesError } = await supabase.from('sales_order_lines').insert(lineRows)
     if (linesError) return { error: linesError.message }
   }
   return {}
 }
 
-export async function addDisposition(entry: Partial<BirdDisposition>): Promise<void> {
+export async function addDisposition(
+  entry: Partial<BirdDisposition> & { tenant_id?: string }
+): Promise<void> {
   if (shouldUseMock()) {
     demoSession.dispositions.push({
       id: `d-${Date.now()}`,
@@ -553,7 +618,10 @@ export async function addDisposition(entry: Partial<BirdDisposition>): Promise<v
     persistDemoSession()
     return
   }
-  await supabase.from('bird_dispositions').insert(entry)
+  const tenantId = (entry as { tenant_id?: string }).tenant_id || DEMO_TENANT_ID
+  const row = mapDispositionToDb({ ...entry, tenant_id: tenantId })
+  const { error } = await supabase.from('bird_dispositions').insert(row)
+  if (error) console.error('addDisposition error:', error.message)
 }
 
 export async function addSupplier(supplier: Partial<Supplier>): Promise<{ data?: Supplier; error?: string }> {
@@ -580,9 +648,11 @@ export async function addSupplier(supplier: Partial<Supplier>): Promise<{ data?:
     return { data: created }
   }
 
-  const { data, error } = await supabase.from('suppliers').insert(supplier).select().single()
+  const tenantId = supplier.tenant_id || DEMO_TENANT_ID
+  const row = mapSupplierToDb({ ...supplier, tenant_id: tenantId })
+  const { data, error } = await supabase.from('suppliers').insert(row).select().single()
   if (error) return { error: error.message }
-  return { data: data as Supplier }
+  return { data: mapSupplierFromDb(data as Record<string, unknown>) }
 }
 
 export async function addCustomer(customer: Partial<Customer>): Promise<{ data?: Customer; error?: string }> {
@@ -606,9 +676,11 @@ export async function addCustomer(customer: Partial<Customer>): Promise<{ data?:
     return { data: created }
   }
 
-  const { data, error } = await supabase.from('customers').insert(customer).select().single()
+  const tenantId = customer.tenant_id || DEMO_TENANT_ID
+  const row = mapCustomerToDb({ ...customer, tenant_id: tenantId })
+  const { data, error } = await supabase.from('customers').insert(row).select().single()
   if (error) return { error: error.message }
-  return { data: data as Customer }
+  return { data: mapCustomerFromDb(data as Record<string, unknown>) }
 }
 
 export async function confirmPayment(
@@ -653,10 +725,43 @@ export async function confirmPayment(
     return {}
   }
 
-  const { error } = await supabase
-    .from('customer_payments')
-    .insert({ ...payment, status: 'confirmed', confirmed_at: new Date().toISOString() })
-  return error ? { error: error.message } : {}
+  const tenantId = (payment as { tenant_id?: string }).tenant_id || DEMO_TENANT_ID
+  const row = mapPaymentToDb({
+    ...payment,
+    tenant_id: tenantId,
+    status: 'confirmed',
+    confirmed_at: new Date().toISOString(),
+  })
+
+  const { error } = await supabase.from('customer_payments').insert(row)
+  if (error) return { error: error.message }
+
+  if (payment.order_id) {
+    const { data: orderRow } = await supabase
+      .from('sales_orders')
+      .select('total_amount')
+      .eq('id', payment.order_id)
+      .single()
+    if (orderRow) {
+      const { data: existingPayments } = await supabase
+        .from('customer_payments')
+        .select('amount')
+        .eq('sales_order_id', payment.order_id)
+        .in('payment_status', ['confirmed', 'paid'])
+      const totalPaid =
+        (existingPayments || []).reduce((s, p) => s + Number(p.amount), 0)
+      const totalAmount = Number(orderRow.total_amount)
+      let paymentStatus = 'pending'
+      if (totalPaid >= totalAmount) paymentStatus = 'paid'
+      else if (totalPaid > 0) paymentStatus = 'partial'
+      await supabase
+        .from('sales_orders')
+        .update({ payment_status: paymentStatus })
+        .eq('id', payment.order_id)
+    }
+  }
+
+  return {}
 }
 
 export async function confirmSupplierPayment(invoiceId: string): Promise<{ error?: string }> {
@@ -674,12 +779,10 @@ export async function confirmSupplierPayment(invoiceId: string): Promise<{ error
   }
   const { data: invoice } = await supabase.from('supplier_invoices').select('total_amount').eq('id', invoiceId).single()
   if (!invoice) return { error: 'Supplier invoice not found' }
-  await supabase.from('supplier_invoices').update({
-    payment_status: 'paid',
-    amount_paid: invoice.total_amount,
-    balance: 0,
-    payment_confirmed_at: new Date().toISOString(),
-  }).eq('id', invoiceId)
+  await supabase
+    .from('supplier_invoices')
+    .update({ payment_status: 'paid' })
+    .eq('id', invoiceId)
   return {}
 }
 

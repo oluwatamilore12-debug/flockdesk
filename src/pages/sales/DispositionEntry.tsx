@@ -79,7 +79,7 @@ export function DispositionEntry({ salesDayId, onClose, onSaved }: Props) {
   }
 
   const handleSave = async () => {
-    const entries: Partial<BirdDisposition>[] = []
+    const entries: (Partial<BirdDisposition> & { tenant_id?: string })[] = []
     let hasError = false
 
     const onGroundByType = new Map<string, number>()
@@ -122,6 +122,7 @@ export function DispositionEntry({ salesDayId, onClose, onSaved }: Props) {
       types.forEach(({ type, qty }) => {
         if (qty > 0) {
           entries.push({
+            tenant_id: profile?.tenant_id,
             sales_day_id: salesDayId,
             bird_type_id: draft.bird_type_id,
             disposition_type: type,

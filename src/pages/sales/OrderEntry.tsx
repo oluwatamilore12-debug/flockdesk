@@ -11,7 +11,6 @@ import {
 } from '@/lib/dataService'
 import { validateOrderLine, validateCustomer } from '@/lib/validation'
 import { cn, formatCurrency, formatDate, formatNumber, normalizePhone } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/authStore'
 import { CustomerProfile } from './CustomerProfile'
 import type { BirdType, Customer, BirdGrade, ReconciliationRow } from '@/types'
@@ -192,53 +191,32 @@ export function OrderEntry({ salesDayId, onClose, onSaved }: Props) {
 
     const phone = normalizePhone(newCustomer.phone)
 
-    if (isDemoMode()) {
-      const result = await addCustomer({
-        tenant_id: profile?.tenant_id || '',
-        name: newCustomer.name.trim(),
-        phone,
-        business_name: newCustomer.business_name.trim() || null,
-        customer_type: newCustomer.customer_type,
-      })
-      if (result.error || !result.data) {
-        toast.error(result.error || 'Failed to add customer')
-        return
-      }
-      setCustomers((prev) => [...prev, result.data!])
-      setSelectedCustomer(result.data)
-      setShowAddCustomer(false)
-      setNewCustomer({ name: '', phone: '', business_name: '', customer_type: 'retail' })
-      toast.success('Customer added — visible in Accounts debtors ledger')
-      return
-    }
-
-    if (!profile?.tenant_id) {
+    if (!profile?.tenant_id && !isDemoMode()) {
       toast.error('Unable to create customer — profile not loaded')
       return
     }
 
-    const { data, error } = await supabase
-      .from('customers')
-      .insert({
-        tenant_id: profile.tenant_id,
-        name: newCustomer.name.trim(),
-        phone,
-        business_name: newCustomer.business_name.trim() || null,
-        customer_type: newCustomer.customer_type,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      toast.error(error.message)
+    const result = await addCustomer({
+      tenant_id: profile?.tenant_id || '',
+      name: newCustomer.name.trim(),
+      phone,
+      business_name: newCustomer.business_name.trim() || null,
+      customer_type: newCustomer.customer_type,
+    })
+    if (result.error || !result.data) {
+      toast.error(result.error || 'Failed to add customer')
       return
     }
 
-    setCustomers((prev) => [...prev, data as Customer])
-    setSelectedCustomer(data as Customer)
+    setCustomers((prev) => [...prev, result.data!])
+    setSelectedCustomer(result.data)
     setShowAddCustomer(false)
     setNewCustomer({ name: '', phone: '', business_name: '', customer_type: 'retail' })
-    toast.success('Customer added')
+    toast.success(
+      isDemoMode()
+        ? 'Customer added — visible in Accounts debtors ledger'
+        : 'Customer added'
+    )
   }
 
   const validateAllLines = (): boolean => {
@@ -294,6 +272,7 @@ export function OrderEntry({ salesDayId, onClose, onSaved }: Props) {
 
       const result = await createOrder(
         {
+          tenant_id: profile?.tenant_id,
           sales_day_id: salesDayId,
           customer_id: selectedCustomer.id,
           order_number: orderNumber,
