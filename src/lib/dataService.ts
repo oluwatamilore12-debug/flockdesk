@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase'
-import { mapSalesDayFromDb } from './salesDayMapper'
+import { mapSalesDayFromDb, mapStockFromDb, mapStockToDb } from './salesDayMapper'
 import {
   mockBirdTypes, mockCustomers, mockSuppliers, mockStock,
   mockOrders, mockOrderLines, mockDispositions, mockSupplierInvoices,
@@ -154,7 +154,8 @@ export async function getStockForSalesDay(salesDayId: string): Promise<SalesSess
     .from('sales_session_stock')
     .select('*, bird_type:bird_types(*), supplier:suppliers(*)')
     .eq('sales_day_id', salesDayId)
-  return data || []
+    .is('deleted_at', null)
+  return (data || []).map((row) => mapStockFromDb(row as Record<string, unknown>))
 }
 
 export async function getOrdersForSalesDay(salesDayId: string): Promise<SalesOrder[]> {
@@ -345,7 +346,9 @@ export async function openSalesDay(
   return { data: mapSalesDayFromDb(data as Record<string, unknown>) }
 }
 
-export async function addStockEntry(entry: Partial<SalesSessionStock>): Promise<{ error?: string }> {
+export async function addStockEntry(
+  entry: Partial<SalesSessionStock> & { tenant_id?: string }
+): Promise<{ error?: string }> {
   if (shouldUseMock()) {
     const newEntry: SalesSessionStock = {
       id: `st-${Date.now()}`,
@@ -394,13 +397,34 @@ export async function addStockEntry(entry: Partial<SalesSessionStock>): Promise<
     persistDemoSession()
     return {}
   }
-  const { error } = await supabase.from('sales_session_stock').insert({
-    ...entry,
-    tenant_id: DEMO_TENANT_ID,
-    grade: 'standard',
-    quantity_received: entry.quantity_declared,
-  })
-  return error ? { error: error.message } : {}
+  const tenantId = entry.tenant_id || DEMO_TENANT_ID
+  const payload = mapStockToDb({ ...entry, tenant_id: tenantId })
+
+  const { error: stockError } = await supabase.from('sales_session_stock').insert(payload)
+  if (stockError) return { error: stockError.message }
+
+  if (entry.source_type === 'supplier' && entry.supplier_id && entry.quantity_declared) {
+    const invoiceNumber = `SUP-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 900) + 100)}`
+    const rate = entry.supplier_rate_per_chick ?? 0
+    const qty = entry.quantity_declared
+    const { error: invoiceError } = await supabase.from('supplier_invoices').insert({
+      tenant_id: tenantId,
+      supplier_id: entry.supplier_id,
+      sales_day_id: entry.sales_day_id,
+      invoice_number: invoiceNumber,
+      bird_type_id: entry.bird_type_id,
+      quantity: qty,
+      unit_cost: rate,
+      payment_status: 'pending',
+      notes: entry.discrepancy_note ?? null,
+      created_by: entry.created_by || null,
+    })
+    if (invoiceError) {
+      console.warn('Supplier invoice creation failed:', invoiceError.message)
+    }
+  }
+
+  return {}
 }
 
 export async function createOrder(

@@ -271,6 +271,7 @@ export function SalesDashboard() {
     setSavingStock(true)
     try {
       const stockResult = await addStockEntry({
+        tenant_id: profile?.tenant_id,
         sales_day_id: salesDay.id,
         bird_type_id: stockForm.bird_type_id,
         source_type: stockForm.source_type,
