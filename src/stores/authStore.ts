@@ -21,6 +21,13 @@ interface AuthState {
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000
 const DEMO_SESSION_KEY = 'flockdesk-demo-session'
 
+/** Allow demo123 on localhost dev even when .env.local points at local Supabase */
+function isLocalDevEnvironment(): boolean {
+  if (!import.meta.env.DEV) return false
+  const url = import.meta.env.VITE_SUPABASE_URL || ''
+  return !url || url.includes('127.0.0.1') || url.includes('localhost')
+}
+
 const demoProfiles: Record<string, { role: import('@/types').UserRole; name: string }> = {
   'sales@jmages.ng': { role: 'sales_manager', name: 'Sales Manager' },
   'accounts@jmages.ng': { role: 'accounts_manager', name: 'Accounts Manager' },
@@ -123,8 +130,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { isSupabaseConfigured } = await import('@/lib/supabase')
     const demo = demoProfiles[email.toLowerCase()]
-    // Demo credentials only when Supabase is not configured (local exploration)
-    if (!isSupabaseConfigured && demo && password === 'demo123') {
+    const allowDemoLogin = !isSupabaseConfigured || isLocalDevEnvironment()
+    if (allowDemoLogin && demo && password === 'demo123') {
       setForceDemoMode(true)
       sessionStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ email }))
       set({

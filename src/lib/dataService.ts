@@ -398,9 +398,21 @@ export async function addStockEntry(
     return {}
   }
   const tenantId = entry.tenant_id || DEMO_TENANT_ID
-  const payload = mapStockToDb({ ...entry, tenant_id: tenantId })
+  const mapped = mapStockToDb({ ...entry, tenant_id: tenantId })
+  const stockRow = {
+    tenant_id: mapped.tenant_id,
+    sales_day_id: mapped.sales_day_id,
+    bird_type_id: mapped.bird_type_id,
+    source_type: mapped.source_type,
+    supplier_id: mapped.supplier_id,
+    grade: mapped.grade,
+    opening_quantity: mapped.opening_quantity,
+    unit_cost: mapped.unit_cost,
+    unit_price: mapped.unit_price,
+    notes: mapped.notes,
+  }
 
-  const { error: stockError } = await supabase.from('sales_session_stock').insert(payload)
+  const { error: stockError } = await supabase.from('sales_session_stock').insert(stockRow)
   if (stockError) return { error: stockError.message }
 
   if (entry.source_type === 'supplier' && entry.supplier_id && entry.quantity_declared) {

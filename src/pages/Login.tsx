@@ -114,9 +114,18 @@ export function LoginPage() {
           </form>
 
           <div className="rounded-xl bg-[#F0F2FA] p-4 text-xs text-[#001996]">
-            <p className="font-semibold text-[#000000]">Client logins:</p>
+            <p className="font-semibold text-[#000000]">
+              {import.meta.env.DEV ? 'Localhost login (demo)' : 'Client logins'}
+            </p>
             <p className="mt-1">sales@jmages.ng · accounts@jmages.ng · md@jmages.ng · admin@jmages.ng</p>
-            <p>Contact your administrator for credentials.</p>
+            {import.meta.env.DEV ? (
+              <p className="mt-1">
+                Password: <span className="font-mono font-semibold text-[#001996]">demo123</span>
+                <span className="block mt-1 text-[#10259C]">Open http://localhost:5173/login</span>
+              </p>
+            ) : (
+              <p>Contact your administrator for credentials.</p>
+            )}
           </div>
 
           <InstallAppPrompt />
