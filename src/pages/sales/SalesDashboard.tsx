@@ -421,7 +421,7 @@ export function SalesDashboard() {
         progressComplete={stockFullyAccounted}
       />
 
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="action-bar flex flex-wrap justify-end gap-2">
         <Button variant="outline" size="sm" onClick={() => loadData(true)} loading={refreshing}>
           <RefreshCw className="h-4 w-4" /> Refresh
         </Button>
@@ -490,7 +490,7 @@ export function SalesDashboard() {
             </div>
           )}
 
-          <div className="flex gap-1 overflow-x-auto rounded-xl border border-[#F0F2FA] bg-white p-1">
+          <div className="tab-scroll flex gap-1 overflow-x-auto rounded-xl border border-[#F0F2FA] bg-white p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon
               return (

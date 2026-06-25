@@ -189,13 +189,13 @@ export function AccountsDashboard() {
         <AnimatedStatCard title="Supplier Payables" value={supplierOwing} isCurrency />
       </div>
 
-      <div className="flex justify-end">
+      <div className="action-bar flex justify-end">
         <Button variant="outline" size="sm" onClick={() => loadOrders(true)} loading={refreshing}>
           <RefreshCw className="h-4 w-4" /> Refresh from Sales
         </Button>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto rounded-xl border border-[#F0F2FA] bg-white p-1">
+      <div className="tab-scroll flex gap-1 overflow-x-auto rounded-xl border border-[#F0F2FA] bg-white p-1">
         {tabs.map((tab) => {
           const Icon = tab.icon
           const count = tab.id === 'overview' ? queue.length : undefined

@@ -213,7 +213,7 @@ export function StatCard({
 
 export function Table({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('overflow-x-auto rounded-xl border border-[#F0F2FA]', className)}>
+    <div className={cn('-mx-1 overflow-x-auto rounded-xl border border-[#F0F2FA] sm:mx-0', className)}>
       <table className="dept-table min-w-full" style={{ '--row-alt': '#F0F2FA' } as React.CSSProperties}>
         {children}
       </table>

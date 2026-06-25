@@ -103,8 +103,20 @@
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .toast-mobile { top: calc(0.75rem + env(safe-area-inset-top, 0px)) !important; }
 
+  .page-container {
+    width: 100%;
+    max-width: 100%;
+    margin-inline: auto;
+    padding: 0.75rem;
+  }
+
   @media (min-width: 640px) {
     .toast-mobile { top: 1rem !important; }
+    .page-container { padding: 1rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .page-container { padding: 1.5rem; max-width: 1600px; }
   }
 }
 
@@ -135,21 +147,43 @@
   }
 }
 
-@media (max-width: 768px) {
-  .desktop-sidebar { display: none !important; }
-  .bottom-tab-bar { display: flex !important; }
+@media (max-width: 1023px) {
   .stats-grid { grid-template-columns: 1fr !important; }
 
   .dept-table th,
   .dept-table td {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    font-size: 0.8125rem;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .action-bar > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tab-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .tab-scroll::-webkit-scrollbar { display: none; }
+
+  .tab-scroll > button {
+    scroll-snap-align: start;
+    min-height: 44px;
   }
 }
 
-@media (min-width: 769px) {
-  .bottom-tab-bar { display: none !important; }
+@media (min-width: 1024px) {
+  .app-sidebar { position: sticky; top: 0; height: 100dvh; }
 }
 
 @media print {

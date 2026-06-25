@@ -107,13 +107,13 @@ function LayoutInner() {
   )
 
   return (
-    <div className="flex min-h-screen bg-[#F0F2FA] pb-16 md:pb-0">
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+    <div className="flex min-h-[100dvh] bg-[#F0F2FA]">
+      {sidebarOpen && <div className="fixed inset-0 z-[55] bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <aside
         className={cn(
-          'desktop-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col text-white transition-transform lg:static lg:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'app-sidebar fixed inset-y-0 left-0 z-[60] flex w-[min(280px,88vw)] flex-col text-white shadow-2xl transition-transform duration-300 lg:static lg:z-auto lg:w-64 lg:translate-x-0 lg:shadow-none',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
         style={{ background: theme.sidebarGradient }}
       >
@@ -172,28 +172,10 @@ function LayoutInner() {
             )}
           </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
+        <main className="page-container flex-1 overflow-x-hidden overflow-y-auto">
           <Outlet />
         </main>
       </div>
-
-      <nav className="bottom-tab-bar fixed bottom-0 left-0 right-0 z-40 border-t border-[#F0F2FA] bg-white" aria-label="Mobile navigation">
-        {filteredNav.map((item) => {
-          const Icon = item.icon
-          const active = location.pathname.startsWith(item.path) || (item.path === '/executive' && location.pathname.startsWith('/md'))
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className="flex flex-1 flex-col items-center gap-1 py-2 text-xs"
-              style={{ color: active ? theme.primary : '#001996' }}
-            >
-              <Icon className="h-5 w-5" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          )
-        })}
-      </nav>
     </div>
   )
 }
