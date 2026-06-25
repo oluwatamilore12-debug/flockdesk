@@ -1,0 +1,28 @@
+# FlockDesk local stack
+# Run: docker compose up -d
+# Supabase local: npx supabase start (uses Docker Desktop)
+
+services:
+  flockdesk-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL:-http://127.0.0.1:54321}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    depends_on:
+      - flockdesk-web-build
+    profiles:
+      - production
+
+  # Dev: use `npm run dev` directly — this service is for production preview only
+  flockdesk-web-build:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm install && npm run build"
+    profiles:
+      - production
