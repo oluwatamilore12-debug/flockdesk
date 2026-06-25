@@ -111,9 +111,9 @@ export function LoginPage() {
           </form>
 
           <div className="mt-6 rounded-xl bg-[#F0F2FA] p-4 text-xs text-[#001996]">
-            <p className="font-semibold text-[#000000]">Demo credentials:</p>
+            <p className="font-semibold text-[#000000]">Client logins:</p>
             <p className="mt-1">sales@jmages.ng · accounts@jmages.ng · md@jmages.ng · admin@jmages.ng</p>
-            <p>Password: <span className="font-mono font-semibold text-[#001996]">demo123</span></p>
+            <p>Contact your administrator for credentials.</p>
           </div>
         </div>
       </motion.div>
